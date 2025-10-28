@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>News Feed Application</title>
+
+  <style>
+    /* ---------- GLOBAL STYLES ---------- */
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    header {
+      background-color: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 25px 10px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    header p {
+      margin-top: 5px;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    /* ---------- NAVIGATION ---------- */
+    nav {
+      background-color: #334155;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    nav button {
+      background-color: white;
+      color: #1e3a8a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s ease;
+    }
+
+    nav button:hover {
+      background-color: #1e3a8a;
+      color: white;
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 25px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card-content h3 {
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+
+    .card-content p {
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .source {
+      display: inline-block;
+      margin-top: 10px;
+      color: #2563eb;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .source:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      background-color: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+      margin-top: 40px;
+    }
+
+    /* ---------- LOADING TEXT ---------- */
+    .loading {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #334155;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 500px) {
+      header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📰 News Feed Application</h1>
+    <p>Live Headlines from GNews API</p>
+  </header>
+
+  <nav>
+    <button onclick="loadNews('general')">General</button>
+    <button onclick="loadNews('world')">World</button>
+    <button onclick="loadNews('business')">Business</button>
+    <button onclick="loadNews('technology')">Technology</button>
+    <button onclick="loadNews('entertainment')">Entertainment</button>
+    <button onclick="loadNews('sports')">Sports</button>
+    <button onclick="loadNews('health')">Health</button>
+  </nav>
+
+  <p id="loading" class="loading">Fetching latest news...</p>
+  <div id="newsContainer" class="container"></div>
+
+  <footer>© 2025 News Feed Application</footer>
+
+  <script>
+    const apiKey = "YOUR_GNEWS_API_KEY_HERE"; // Replace with your key from gnews.io
+    const newsContainer = document.getElementById("newsContainer");
+    const loadingText = document.getElementById("loading");
+
+    async function loadNews(category = "general") {
+      loadingText.style.display = "block";
+      newsContainer.innerHTML = "";
+
+      try {
+        const res = await fetch(
+          `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=in&max=10&apikey=${apiKey}`
+        );
+        const data = await res.json();
+
+        loadingText.style.display = "none";
+
+        if (!data.articles || data.articles.length === 0) {
+          newsContainer.innerHTML =
+            "<p class='loading'>No news found for this category.</p>";
+          return;
+        }
+
+        data.articles.forEach((article) => {
+          const card = document.createElement("div");
+          card.classList.add("card");
+          card.innerHTML = `
+            <img src="${article.image || "https://via.placeholder.com/400x200"}" alt="">
+            <div class="card-content">
+              <h3>${article.title}</h3>
+              <p>${article.description || "No description available."}</p>
+              <a href="${article.url}" target="_blank" class="source">Read more →</a>
+            </div>
+          `;
+          newsContainer.appendChild(card);
+        });
+      } catch (error) {
+        console.error("Error loading news:", error);
+        loadingText.style.display = "none";
+        newsContainer.innerHTML = `
+          <p class='loading'>⚠️ Unable to fetch live news. Showing demo data instead.</p>
+        `;
+        loadDemoData();
+      }
+    }
+
+    function loadDemoData() {
+      const demo = [
+        {
+          title: "Offline Demo Article 1",
+          description:
+            "This is a demo article shown when live news cannot be fetched.",
+          url: "#",
+          image: "https://via.placeholder.com/400x200",
+        },
+        {
+          title: "Offline Demo Article 2",
+          description: "Sample news card layout for offline mode preview.",
+          url: "#",
+          image: "https://via.placeholder.com/400x200",
+        },
+      ];
+
+      demo.forEach((article) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.innerHTML = `
+          <img src="${article.image}" alt="">
+          <div class="card-content">
+            <h3>${article.title}</h3>
+            <p>${article.description}</p>
+            <a href="${article.url}" class="source">Read more →</a>
+          </div>
+        `;
+        newsContainer.appendChild(card);
+      });
+    }
+
+    loadNews(); // Load default category
+  </script>
+</body>
+</html>
